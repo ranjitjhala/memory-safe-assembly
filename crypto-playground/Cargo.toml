@@ -21,6 +21,6 @@ cc = "1.0.90"
 
 [package.metadata.flux]
 enabled = true
-include = ["src/utils.rs"]
+include = ["src/utils.rs", "src/sha1.rs"]
 # include = ["src/sha1.rs", "src/sha256.rs", "src/utils.rs"]
 

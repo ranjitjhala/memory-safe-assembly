@@ -81,6 +81,9 @@ where
     mask & a | (!mask & b)
 }
 
+#[flux::trusted(
+    reason = "crates/flux-middle/src/rty/mod.rs:813:32: caller should guarantee existence of associated refinement"
+)]
 #[inline]
 pub fn constant_time_msb(a: i64) -> i64 {
     0 - (a >> ((core::mem::size_of::<i64>() as i64) * 8 - 1))
