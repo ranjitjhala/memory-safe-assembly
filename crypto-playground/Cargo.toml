@@ -8,6 +8,8 @@ bums_macros = { path = "../bums_macros" }
 byteorder = "*"
 num-traits = "0.2.18"
 zeroize = "1.8.1"
+flux-rs = { git  = "https://github.com/flux-rs/flux.git" }
+flux-core = { git  = "https://github.com/flux-rs/flux.git" }
 
 [dev-dependencies]
 aws-lc-rs = "*"
@@ -16,3 +18,9 @@ aws-lc-sys = "0.14.1"
 [build-dependencies]
 bums_macros = { path = "../bums_macros" }
 cc = "1.0.90"
+
+[package.metadata.flux]
+enabled = true
+include = ["src/utils.rs"]
+# include = ["src/sha1.rs", "src/sha256.rs", "src/utils.rs"]
+

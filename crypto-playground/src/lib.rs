@@ -1,3 +1,11 @@
+#![flux::opts(scrape_quals = "true")]
+
+flux_rs::defs! {
+    qualifier Le10(v: int) { v <= 10 }
+    qualifier Le8(v: int) { v <= 8 }
+    qualifier Le5(v: int) { v <= 5 }
+}
+
 pub mod aes;
 // pub mod awslc;
 pub mod bn;
@@ -12,3 +20,5 @@ mod utils;
 // Setting to 0 assumes no special crypto instructions (NEON, AES, PMULL, SHA1, SHA256, SHA512, SHA3, CPUID)
 #[no_mangle]
 pub static OPENSSL_armcap_P: usize = 0;
+
+extern crate flux_core;

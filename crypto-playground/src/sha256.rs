@@ -13,6 +13,7 @@ struct Sha256StateSt {
     nl: u32,
     nh: u32,
     data: [u8; SHA256_CBLOCK],
+    #[flux::field(u32{v: v < SHA256_CBLOCK})]
     num: u32,
     md_len: u32,
 }

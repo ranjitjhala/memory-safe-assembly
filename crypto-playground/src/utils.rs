@@ -1,6 +1,7 @@
 use byteorder::ByteOrder;
 use num_traits::PrimInt;
 
+#[flux::spec(fn (dst: &mut [T]{v: n <= v}, src: &[T]{v: n <= v}, n: usize))]
 pub fn ms_memcpy<T: std::marker::Copy>(dst: &mut [T], src: &[T], n: usize) {
     if n == 0 {
         return;
@@ -8,6 +9,7 @@ pub fn ms_memcpy<T: std::marker::Copy>(dst: &mut [T], src: &[T], n: usize) {
     dst[0..n].copy_from_slice(&src[0..n]);
 }
 
+#[flux::spec(fn (dst: &mut [T]{v: n <= v}, c: T, n: usize))]
 pub fn ms_memset<T: std::clone::Clone>(dst: &mut [T], c: T, n: usize) {
     if n == 0 {
         return;
@@ -44,6 +46,7 @@ pub fn ms_addc_u64(x: u64, y: u64, carry_in: bool) -> (u64, bool) {
     }
 }
 
+#[flux::trusted(reason = "ignore underflow")]
 #[inline]
 pub fn ms_subc_u64(x: u64, y: u64, carry_in: bool) -> (u64, bool) {
     let ret = x - y - (carry_in as u64);

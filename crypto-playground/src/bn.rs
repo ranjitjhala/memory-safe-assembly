@@ -219,6 +219,9 @@ fn bn_ucmp(a: &BIGNUM, b: &BIGNUM) -> Result<(), String> {
     return Err("something".to_string());
 }
 
+#[flux_rs::trusted(
+    reason = "crates/flux-refineck/src/primops.rs:90:32: no primop rule for BitXor using [(bool, a3), (bool, a6)]"
+)]
 pub fn bn_add(r: &mut BIGNUM, a: &BIGNUM, b: &BIGNUM) -> Result<(), String> {
     let mut temp_a = a.clone();
     let mut temp_b = b.clone();

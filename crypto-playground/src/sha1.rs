@@ -10,6 +10,7 @@ struct Sha1Context {
     nl: u32,
     nh: u32,
     data: [u8; SHA1_CBLOCK],
+    #[flux::field(u32{v: v < SHA1_CBLOCK})]
     num: u32,
 }
 
@@ -37,6 +38,7 @@ fn sha1(data: &[u8], len: usize, out: &mut [u8]) {
     sha1_final(out, &mut ctx).expect("Final");
 }
 
+#[flux::spec(fn (ctx: &mut Sha1Context, msg: &[u8], len: usize) -> Result<(), ()>[true])]
 fn sha1_update(ctx: &mut Sha1Context, msg: &[u8], len: usize) -> Result<(), ()> {
     //call to crypt_md32_update
     let mut len = len;
@@ -86,6 +88,7 @@ fn sha1_update(ctx: &mut Sha1Context, msg: &[u8], len: usize) -> Result<(), ()> 
     Ok(())
 }
 
+#[flux::spec(fn (out: &mut [u8], ctx: &mut Sha1Context) -> Result<(), ()>[true])]
 fn sha1_final(out: &mut [u8], ctx: &mut Sha1Context) -> Result<(), ()> {
     // call to crypto_md32_final
     let mut n = ctx.num as usize;
