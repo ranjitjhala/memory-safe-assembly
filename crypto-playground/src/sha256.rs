@@ -15,6 +15,7 @@ struct Sha256StateSt {
     data: [u8; SHA256_CBLOCK],
     #[flux::field(u32{v: v < SHA256_CBLOCK})]
     num: u32,
+    #[flux::field(u32[SHA256_DIGEST_LENGTH])]
     md_len: u32,
 }
 
@@ -34,7 +35,7 @@ impl Sha256StateSt {
     }
 }
 
-#[flux::spec(fn (ctx: &mut SHA256_CTX, msg: &[u8][len], len: usize) -> Result<(), ()>[true] ensures ctx: Sha256StateSt)]
+#[flux::spec(fn (ctx: &mut SHA256_CTX, msg: &[u8][len], len: usize) -> Result<(), ()>[true] ensures ctx: SHA256_CTX)]
 fn sha256_update(ctx: &mut SHA256_CTX, msg: &[u8], len: usize) -> Result<(), ()> {
     //call to crypt_md32_update
     let mut len = len;
@@ -84,12 +85,11 @@ fn sha256_update(ctx: &mut SHA256_CTX, msg: &[u8], len: usize) -> Result<(), ()>
     Ok(())
 }
 
-#[flux::trusted(reason="claude")]
 #[flux::spec(fn (out: &mut [u8], ctx: &mut SHA256_CTX) -> Result<(), ()>[true])]
 fn sha256_final(out: &mut [u8], ctx: &mut SHA256_CTX) -> Result<(), ()> {
     // call to crypto_md32_final
     let mut n = ctx.num as usize;
-    assert!(n < SHA256_CBLOCK);
+    flux_runtime_assert(n < SHA256_CBLOCK);
     ctx.data[n] = 0x80;
     n = n + 1;
 
@@ -123,7 +123,7 @@ fn sha256(data: &[u8], len: usize, out: &mut [u8]) {
     sha256_final(out, &mut ctx).expect("Final");
 }
 
-#[flux::spec(fn (ctx: &mut SHA256_CTX, msg: &[u8][len], len: usize) -> Result<(), ()>[true] ensures ctx: Sha256StateSt)]
+#[flux::spec(fn (ctx: &mut SHA256_CTX, msg: &[u8][len], len: usize) -> Result<(), ()>[true] ensures ctx: SHA256_CTX)]
 fn sha256_update_unsafe_asm(ctx: &mut SHA256_CTX, msg: &[u8], len: usize) -> Result<(), ()> {
     //call to crypt_md32_update
     let mut len = len;
@@ -177,12 +177,18 @@ fn sha256_update_unsafe_asm(ctx: &mut SHA256_CTX, msg: &[u8], len: usize) -> Res
     Ok(())
 }
 
-#[flux::trusted(reason="claude")]
+#[flux::spec(fn (cond: bool) ensures cond)]
+fn flux_runtime_assert(cond: bool) {
+    if !cond {
+        panic!("Flux runtime assertion failed");
+    }
+}
+
 #[flux::spec(fn (out: &mut [u8], ctx: &mut SHA256_CTX) -> Result<(), ()>[true])]
 fn sha256_final_unsafe_asm(out: &mut [u8], ctx: &mut SHA256_CTX) -> Result<(), ()> {
     // call to crypto_md32_final
     let mut n = ctx.num as usize;
-    assert!(n < SHA256_CBLOCK);
+    flux_runtime_assert(n < SHA256_CBLOCK);
     ctx.data[n] = 0x80;
     n = n + 1;
 
