@@ -17,6 +17,7 @@ impl AesKey {
         };
     }
 
+    #[flux::trusted(reason="claude")]
     pub fn new_from_bytes(bytes: &[u8]) -> Self {
         let mut i = 0;
         let mut rd_key: [u32; 60] = [0; 60];
@@ -101,6 +102,7 @@ fn vpaes_ctr32_encrypt_blocks(
 #[bums_macros::check_mem_safe("vpaes-armv8.S", input.as_ptr(), output.as_mut_ptr(), keys as *const _, [keys.1 >= 10, keys.1 <= 16,keys.1%2==0, input.len()>= 16,input.len() == output.len()])]
 fn vpaes_encrypt(input: &[u8], output: &mut [u8], keys: &([u32; 60], u32));
 
+#[flux::trusted(reason="claude")]
 #[allow(non_snake_case)]
 pub fn AES_ctr128_encrypt(
     key: &mut AesKey,
@@ -127,6 +129,7 @@ pub fn AES_ctr128_encrypt(
     }
 }
 
+#[flux::trusted(reason="claude")]
 fn aes_ctr128_encrypt(
     input: &[u8],
     out: &mut [u8],
@@ -180,6 +183,7 @@ fn aes_ctr128_encrypt(
     Ok(())
 }
 
+#[flux::trusted(reason="claude")]
 fn crypto_ctr128_encrypt(
     mut input: &[u8],
     mut output: &mut [u8],
@@ -239,6 +243,7 @@ fn crypto_ctr128_encrypt(
     *num = n as u32;
 }
 
+#[flux::trusted(reason="claude")]
 fn crypto_ctr128_encrypt_ctr32(
     mut input: &[u8],
     mut output: &mut [u8],
@@ -339,6 +344,7 @@ fn crypto_ctr128_encrypt_ctr32(
     *num = n as u32;
 }
 
+#[flux::trusted(reason="claude")]
 fn ctr96_inc(counter: &mut [u8]) {
     let mut c: u32 = 1;
 
@@ -349,6 +355,7 @@ fn ctr96_inc(counter: &mut [u8]) {
     }
 }
 
+#[flux::trusted(reason="claude")]
 fn ctr128_inc(counter: &mut [u8]) {
     let mut c: u32 = 1;
 
