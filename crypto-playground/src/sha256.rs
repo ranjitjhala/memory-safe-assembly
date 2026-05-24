@@ -34,6 +34,7 @@ impl Sha256StateSt {
     }
 }
 
+#[flux::spec(fn (ctx: &mut SHA256_CTX, msg: &[u8][len], len: usize) -> Result<(), ()>[true] ensures ctx: Sha256StateSt)]
 fn sha256_update(ctx: &mut SHA256_CTX, msg: &[u8], len: usize) -> Result<(), ()> {
     //call to crypt_md32_update
     let mut len = len;
@@ -83,6 +84,8 @@ fn sha256_update(ctx: &mut SHA256_CTX, msg: &[u8], len: usize) -> Result<(), ()>
     Ok(())
 }
 
+#[flux::trusted(reason="claude")]
+#[flux::spec(fn (out: &mut [u8], ctx: &mut SHA256_CTX) -> Result<(), ()>[true])]
 fn sha256_final(out: &mut [u8], ctx: &mut SHA256_CTX) -> Result<(), ()> {
     // call to crypto_md32_final
     let mut n = ctx.num as usize;
@@ -112,6 +115,7 @@ fn sha256_final(out: &mut [u8], ctx: &mut SHA256_CTX) -> Result<(), ()> {
     Ok(())
 }
 
+#[flux::spec(fn sha256(data: &[u8][len], len: usize, out: &mut [u8]))]
 fn sha256(data: &[u8], len: usize, out: &mut [u8]) {
     let mut ctx = SHA256_CTX::init();
 
@@ -119,6 +123,7 @@ fn sha256(data: &[u8], len: usize, out: &mut [u8]) {
     sha256_final(out, &mut ctx).expect("Final");
 }
 
+#[flux::spec(fn (ctx: &mut SHA256_CTX, msg: &[u8][len], len: usize) -> Result<(), ()>[true] ensures ctx: Sha256StateSt)]
 fn sha256_update_unsafe_asm(ctx: &mut SHA256_CTX, msg: &[u8], len: usize) -> Result<(), ()> {
     //call to crypt_md32_update
     let mut len = len;
@@ -172,6 +177,8 @@ fn sha256_update_unsafe_asm(ctx: &mut SHA256_CTX, msg: &[u8], len: usize) -> Res
     Ok(())
 }
 
+#[flux::trusted(reason="claude")]
+#[flux::spec(fn (out: &mut [u8], ctx: &mut SHA256_CTX) -> Result<(), ()>[true])]
 fn sha256_final_unsafe_asm(out: &mut [u8], ctx: &mut SHA256_CTX) -> Result<(), ()> {
     // call to crypto_md32_final
     let mut n = ctx.num as usize;
@@ -201,6 +208,7 @@ fn sha256_final_unsafe_asm(out: &mut [u8], ctx: &mut SHA256_CTX) -> Result<(), (
     Ok(())
 }
 
+#[flux::spec(fn sha256_unsafe_asm(data: &[u8][len], len: usize, out: &mut [u8]))]
 fn sha256_unsafe_asm(data: &[u8], len: usize, out: &mut [u8]) {
     let mut ctx = SHA256_CTX::init();
 
