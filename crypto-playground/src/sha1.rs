@@ -116,8 +116,13 @@ fn sha1_final(out: &mut [u8], ctx: &mut Sha1Context) -> Result<(), ()> {
     Ok(())
 }
 
+#[flux::spec(fn (context: &mut [u32; 5], input: &[u8]{len: 64 <= len}))]
+fn sha1_block_data_order(context: &mut [u32; 5], input: &[u8]) {
+    sha1_block_data_order_inner(context, input);
+}
+
 #[bums_macros::check_mem_safe("sha1-armv8.S", context.as_mut_ptr(), input.as_ptr(), input.len() / 64, [input.len() >= 64])]
-fn sha1_block_data_order(context: &mut [u32; 5], input: &[u8]);
+fn sha1_block_data_order_inner(context: &mut [u32; 5], input: &[u8]);
 
 #[cfg(test)]
 mod tests {

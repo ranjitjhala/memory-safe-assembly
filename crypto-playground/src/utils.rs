@@ -1,5 +1,4 @@
 use byteorder::ByteOrder;
-use flux_rs::trusted;
 use num_traits::PrimInt;
 
 #[flux::spec(fn (dst: &mut [T]{v: n <= v}, src: &[T]{v: n <= v}, n: usize))]

@@ -6,6 +6,7 @@ use zeroize::Zeroize;
 #[repr(C)]
 pub struct AesKey {
     rd_key: [u32; 4 * (14 + 1)], //14 is the MAX number of AES rounds
+    // FLUX-TODO:PRECONDITIONS: #[flux::field(u32{v: 10 <= v && v <= 16 && v%2==0})]
     rounds: u32,
 }
 
@@ -83,25 +84,63 @@ enum AesFunc {
 //     htable: &[u128; 16],
 // );
 
-// SHOULD REALLY HAVE (rounds == 10 or rounds == 12 or rounds == 14)
-#[bums_macros::check_mem_safe("aesv8-armx.S", input.as_ptr(), output.as_mut_ptr(), input.len()/16, keys as *const _, ivec.as_mut_ptr(), [keys.1 >= 10, keys.1 <= 16, keys.1%2==0, input.len()>=16, input.len() == output.len()])]
+#[flux::spec(fn (
+    input: &[u8][@n],
+    output: &mut [u8][n],
+    keys: &([u32; 60], u32 /* FLUX-TODO:PRECONDITIONS? {v: 10 <= v && v <= 16 && v%2==0} */),
+    ivec: &mut [u8; 16],
+)  /* FLUX-TODO:PRECONDITION? requires n >= 16 */)]
 fn aes_hw_ctr32_encrypt_blocks(
     input: &[u8],
     output: &mut [u8],
     keys: &([u32; 60], u32),
     ivec: &mut [u8; 16],
-);
-
-#[bums_macros::check_mem_safe("vpaes-armv8.S", input.as_ptr(), output.as_mut_ptr(), input.len()/16, keys as *const _, ivec.as_mut_ptr(), [keys.1 >= 10, keys.1 <= 16, keys.1%2==0,input.len()>=16, input.len() == output.len()])]
-fn vpaes_ctr32_encrypt_blocks(
+) {
+    aes_hw_ctr32_encrypt_blocks_inner(input, output, keys, ivec);
+}
+// SHOULD REALLY HAVE (rounds == 10 or rounds == 12 or rounds == 14)
+#[bums_macros::check_mem_safe("aesv8-armx.S", input.as_ptr(), output.as_mut_ptr(), input.len()/16, keys as *const _, ivec.as_mut_ptr(), [keys.1 >= 10, keys.1 <= 16, keys.1%2==0, input.len()>=16, input.len() == output.len()])]
+fn aes_hw_ctr32_encrypt_blocks_inner(
     input: &[u8],
     output: &mut [u8],
     keys: &([u32; 60], u32),
     ivec: &mut [u8; 16],
 );
 
+#[flux::spec(fn (
+    input: &[u8][@n],
+    output: &mut [u8][n],
+    keys: &([u32; 60], u32 /* FLUX-TODO:PRECONDITIONS? {v: 10 <= v && v <= 16 && v%2==0} */),
+    ivec: &mut [u8; 16],
+)  /* FLUX-TODO:PRECONDITION? requires n >= 16 */)]
+fn vpaes_ctr32_encrypt_blocks(
+    input: &[u8],
+    output: &mut [u8],
+    keys: &([u32; 60], u32),
+    ivec: &mut [u8; 16],
+) {
+    vpaes_ctr32_encrypt_blocks_inner(input, output, keys, ivec);
+}
+
+#[bums_macros::check_mem_safe("vpaes-armv8.S", input.as_ptr(), output.as_mut_ptr(), input.len()/16, keys as *const _, ivec.as_mut_ptr(), [keys.1 >= 10, keys.1 <= 16, keys.1%2==0,input.len()>=16, input.len() == output.len()])]
+fn vpaes_ctr32_encrypt_blocks_inner(
+    input: &[u8],
+    output: &mut [u8],
+    keys: &([u32; 60], u32),
+    ivec: &mut [u8; 16],
+);
+
+#[flux::spec(fn (
+    input: &[u8][@n],
+    output: &mut [u8][n],
+    keys: &([u32; 60], u32 /* FLUX-TODO:PRECONDITIONS? {v: 10 <= v && v <= 16 && v%2==0} */),
+  ) /* FLUX-TODO:PRECONDITION? requires n >= 16 */)]
+fn vpaes_encrypt(input: &[u8], output: &mut [u8], keys: &([u32; 60], u32)) {
+    vpaes_encrypt_inner(input, output, keys);
+}
+
 #[bums_macros::check_mem_safe("vpaes-armv8.S", input.as_ptr(), output.as_mut_ptr(), keys as *const _, [keys.1 >= 10, keys.1 <= 16,keys.1%2==0, input.len()>= 16,input.len() == output.len()])]
-fn vpaes_encrypt(input: &[u8], output: &mut [u8], keys: &([u32; 60], u32));
+fn vpaes_encrypt_inner(input: &[u8], output: &mut [u8], keys: &([u32; 60], u32));
 
 #[allow(non_snake_case)]
 #[flux::spec(fn (
@@ -117,8 +156,9 @@ pub fn AES_ctr128_encrypt(
 ) {
     // from aws-lc-rs: let mut num = MaybeUninit::<u32>::new(0);
     let mut num: u32 = 0;
-    let cloned_vec = flux_to_vec(in_out);
+    let cloned_vec = in_out.to_vec();
     let input_clone: &[u8] = flux_to_slice(&cloned_vec); // &in_out.to_vec(); // .clone() not needed?
+
     let res = aes_ctr128_encrypt(
         input_clone,
         in_out,
@@ -138,7 +178,7 @@ pub fn AES_ctr128_encrypt(
     input: &[u8][@n],
     out: &mut [u8][@m],
     len: usize{len <= n && len <= m},
-    key: &([u32; 60], u32),
+    key: &([u32; 60], u32/* FLUX-TODO:PRECONDITIONS? {v: 10 <= v && v <= 16 && v%2==0} */),
     ivec: &mut [u8; 16],
     block_buffer: &mut [u8; 16],
     num: &mut u32) -> Result<(), ()>)]
@@ -268,7 +308,7 @@ const MAX_BLOCKS: usize = 1 << 28;
       input: &[u8][@n],
       output: &mut [u8][@m],
       len0: usize{len0 <= n && len0 <= m},
-      key: &([u32; 60], u32),
+      key: &([u32; 60], u32/* {v: 10 <= v && v <= 16 && v%2==0} */),
       ivec: &mut [u8; 16],
       block_buffer: &mut [u8; 16],
       num: &mut u32,
@@ -351,7 +391,8 @@ fn crypto_ctr128_encrypt_ctr32(
 
     if len != 0 {
         ms_memset(block_buffer, 0, 16);
-        let block_buffer_input = &block_buffer[0..1].to_vec().clone();
+        let tmp = &block_buffer[0..1].to_vec();
+        let block_buffer_input = flux_to_slice(&tmp); // &block_buffer[0..1].to_vec().clone();
         match func {
             AesFunc::AesHwCtr32EncryptBlocks => {
                 aes_hw_ctr32_encrypt_blocks(block_buffer_input, &mut block_buffer[0..1], key, ivec)
