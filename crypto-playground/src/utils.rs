@@ -127,19 +127,3 @@ pub fn flux_unsafe_expect<T, E>(res: Result<T, E>, msg: &str) -> T {
         Err(_) => panic!("{}", msg),
     }
 }
-
-#[flux::trusted(reason = "extern-spec shenanigans, see https://github.com/flux-rs/flux/pull/1622")]
-#[flux::spec(fn (slice: &[T][@n]) -> Vec<T>[n])]
-pub fn flux_to_vec<T>(slice: &[T]) -> Vec<T>
-where
-    T: Clone,
-{
-    slice.to_vec()
-}
-
-// https://flux-rs.zulipchat.com/#narrow/channel/486098-general/topic/specs.20for.20sub-slices.3F/near/597978564
-#[flux::trusted(reason = "extern-spec shenanigans, see https://github.com/flux-rs/flux/pull/1622")]
-#[flux::spec(fn (vec: &Vec<T>[@n]) -> &[T][n])]
-pub fn flux_to_slice<T>(vec: &Vec<T>) -> &[T] {
-    &vec
-}

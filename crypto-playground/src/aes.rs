@@ -156,9 +156,7 @@ pub fn AES_ctr128_encrypt(
 ) {
     // from aws-lc-rs: let mut num = MaybeUninit::<u32>::new(0);
     let mut num: u32 = 0;
-    let cloned_vec = in_out.to_vec();
-    let input_clone: &[u8] = flux_to_slice(&cloned_vec); // &in_out.to_vec(); // .clone() not needed?
-
+    let input_clone: &[u8] = &in_out.to_vec(); // RJ: .clone() not needed?
     let res = aes_ctr128_encrypt(
         input_clone,
         in_out,
@@ -391,8 +389,7 @@ fn crypto_ctr128_encrypt_ctr32(
 
     if len != 0 {
         ms_memset(block_buffer, 0, 16);
-        let tmp = &block_buffer[0..1].to_vec();
-        let block_buffer_input = flux_to_slice(&tmp); // &block_buffer[0..1].to_vec().clone();
+        let block_buffer_input = &block_buffer[0..1].to_vec(); // RJ: .clone() not needed?
         match func {
             AesFunc::AesHwCtr32EncryptBlocks => {
                 aes_hw_ctr32_encrypt_blocks(block_buffer_input, &mut block_buffer[0..1], key, ivec)
