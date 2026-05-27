@@ -17,14 +17,15 @@ impl AesKey {
         };
     }
 
-    #[flux::trusted(reason="claude")]
+    #[flux::spec(fn new_from_bytes(bytes: &[u8][244]) -> AesKey)]
     pub fn new_from_bytes(bytes: &[u8]) -> Self {
-        let mut i = 0;
+        // FLUX let mut i = 0;
         let mut rd_key: [u32; 60] = [0; 60];
-        let rounds = u32::from_le_bytes(bytes[240..244].try_into().unwrap());
+        let rounds = u32::from_le_bytes(flux_unsafe_unwrap(bytes[240..244].try_into()));
         for j in 0..60 {
-            rd_key[j] = u32::from_le_bytes(bytes[i..(i + 4)].try_into().unwrap());
-            i = i + 4;
+            rd_key[j] =
+                u32::from_le_bytes(flux_unsafe_unwrap(bytes[4 * j..4 * (j + 1)].try_into()));
+            // FLUX i = i + 4;
         }
 
         Self { rd_key, rounds }
@@ -102,7 +103,6 @@ fn vpaes_ctr32_encrypt_blocks(
 #[bums_macros::check_mem_safe("vpaes-armv8.S", input.as_ptr(), output.as_mut_ptr(), keys as *const _, [keys.1 >= 10, keys.1 <= 16,keys.1%2==0, input.len()>= 16,input.len() == output.len()])]
 fn vpaes_encrypt(input: &[u8], output: &mut [u8], keys: &([u32; 60], u32));
 
-#[flux::trusted(reason="claude")]
 #[allow(non_snake_case)]
 pub fn AES_ctr128_encrypt(
     key: &mut AesKey,
@@ -129,7 +129,6 @@ pub fn AES_ctr128_encrypt(
     }
 }
 
-#[flux::trusted(reason="claude")]
 fn aes_ctr128_encrypt(
     input: &[u8],
     out: &mut [u8],
@@ -183,11 +182,19 @@ fn aes_ctr128_encrypt(
     Ok(())
 }
 
-#[flux::trusted(reason="claude")]
+// #[flux::trusted(reason = "claude/13 --> 6 errors!")]
+#[flux::spec(fn (
+    input: &[u8][@n],
+    output: &mut [u8][@m],
+    len0: usize{len0 <= n && len0 <= m},
+    key: &([u32; 60], u32),
+    ivec: &mut [u8; 16],
+    block_buffer: &mut [u8; 16],
+    num: &mut u32))]
 fn crypto_ctr128_encrypt(
     mut input: &[u8],
     mut output: &mut [u8],
-    len: usize,
+    len0: usize,
     key: &([u32; 60], u32),
     ivec: &mut [u8; 16],
     block_buffer: &mut [u8; 16],
@@ -195,10 +202,10 @@ fn crypto_ctr128_encrypt(
 ) {
     // assert!(key && ecount_buf && num);
     // assert!(len == 0 || (in && out));
-    assert!(*num <= 16);
-
     let mut n = *num as usize;
-    let mut len = len;
+    flux_runtime_assert(n < 16); // WAS: assert!(*num <= 16) which has an off-by-one?
+
+    let mut len = len0;
 
     let mut i = 0;
     while (n > 0) && (len > 0) {
@@ -207,32 +214,29 @@ fn crypto_ctr128_encrypt(
         n = (n + 1) % 16;
         i = i + 1;
     }
-
     while len >= 16 {
         vpaes_encrypt(ivec, block_buffer, key);
         ctr128_inc(ivec);
         ms_xor16(
-            &mut output[0..16]
-                .try_into()
-                .expect("Must be at least 16 words long"),
-            &input[0..16]
-                .try_into()
-                .expect("Must be at least 16 words long"),
-            &block_buffer[0..16]
-                .try_into()
-                .expect("Must be at least 16 words long"),
+            &mut flux_unsafe_expect(output[0..16].try_into(), "Must be at least 16 words long"),
+            &flux_unsafe_expect(input[0..16].try_into(), "Must be at least 16 words long"),
+            flux_unsafe_expect(
+                block_buffer[0..16].try_into(),
+                "Must be at least 16 words long",
+            ),
         );
         len = len - 16;
         output = &mut output[16..];
         input = &input[16..];
         n = 0
     }
-
     if len != 0 {
         vpaes_encrypt(ivec, block_buffer, key);
         ctr128_inc(ivec);
         len = len - 1;
+        let len_snapshot = len;
         while len > 0 {
+            flux_rs::macros::invariant!(n: int;  n + len ==  len_snapshot); // needed, as else require qualifier n + len = (?n - 1)
             output[n] = input[n] ^ block_buffer[n];
             n = n + 1;
             len = len - 1;
@@ -243,7 +247,7 @@ fn crypto_ctr128_encrypt(
     *num = n as u32;
 }
 
-#[flux::trusted(reason="claude")]
+#[flux::trusted(reason = "claude/ 14 errors!")]
 fn crypto_ctr128_encrypt_ctr32(
     mut input: &[u8],
     mut output: &mut [u8],
@@ -344,22 +348,28 @@ fn crypto_ctr128_encrypt_ctr32(
     *num = n as u32;
 }
 
-#[flux::trusted(reason="claude")]
+#[flux::spec(fn (counter: &mut [u8]{n: 10 < n}))]
 fn ctr96_inc(counter: &mut [u8]) {
     let mut c: u32 = 1;
 
-    for n in (0..11).rev() {
+    // FLUX for n in (0..11).rev() {
+    let mut n = 11;
+    while n >= 1 {
+        n = n - 1;
         c = c + (counter[n] as u32);
         counter[n] = c as u8;
         c = c >> 8;
     }
 }
 
-#[flux::trusted(reason="claude")]
+#[flux::spec(fn (counter: &mut [u8]{n: 10 < n}))]
 fn ctr128_inc(counter: &mut [u8]) {
     let mut c: u32 = 1;
 
-    for n in (0..11).rev() {
+    // FLUX for n in (0..11).rev() {
+    let mut n = 11;
+    while n >= 1 {
+        n = n - 1;
         c = c + (counter[n] as u32);
         counter[n] = c as u8;
         c = c >> 8;

@@ -4,6 +4,9 @@ flux_rs::defs! {
     qualifier Le10(v: int) { v <= 10 }
     qualifier Le8(v: int) { v <= 8 }
     qualifier Le5(v: int) { v <= 5 }
+    qualifier Sum(len: int, i:int, n: int) { len + i == n }
+    // qualifier SumP(len: int, i:int, n: int) { len + i == (n-1) } // OR needs the `mylen` in the
+    qualifier Lt16(n: int) { n < 16 }
 }
 
 pub mod aes;

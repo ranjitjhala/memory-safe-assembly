@@ -40,20 +40,6 @@ fn sha1(data: &[u8], len: usize, out: &mut [u8]) {
     sha1_final(out, &mut ctx).expect("Final");
 }
 
-#[flux::spec(fn (bool[true]))]
-fn flux_assert(_b: bool) {}
-
-fn testme(x: &mut [usize], ctx: &Sha1Context) {
-    let n = x.len();
-    if n == 100 {
-        let y = &mut x[60..];
-        flux_assert(y.len() < 50)
-    }
-    let blah0 = &ctx.data; //[10..];
-    let blah = &blah0[10..];
-    flux_assert(blah.len() < 100)
-}
-
 #[flux::spec(fn (ctx: &mut Sha1Context, msg: &[u8][len], len: usize) -> Result<(), ()>[true] ensures ctx: Sha1Context)]
 fn sha1_update(ctx: &mut Sha1Context, msg: &[u8], len: usize) -> Result<(), ()> {
     //call to crypt_md32_update
@@ -74,7 +60,6 @@ fn sha1_update(ctx: &mut Sha1Context, msg: &[u8], len: usize) -> Result<(), ()> 
     let mut n = ctx.num as usize;
     if n != 0 {
         if len > SHA1_CBLOCK || len + n >= SHA1_CBLOCK {
-            let foo = &mut ctx.data[n..];
             ms_memcpy(&mut ctx.data[n..], msg, SHA1_CBLOCK - n);
             sha1_block_data_order(&mut ctx.h, &ctx.data);
             n = SHA1_CBLOCK - n;

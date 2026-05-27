@@ -177,13 +177,6 @@ fn sha256_update_unsafe_asm(ctx: &mut SHA256_CTX, msg: &[u8], len: usize) -> Res
     Ok(())
 }
 
-#[flux::spec(fn (cond: bool) ensures cond)]
-fn flux_runtime_assert(cond: bool) {
-    if !cond {
-        panic!("Flux runtime assertion failed");
-    }
-}
-
 #[flux::spec(fn (out: &mut [u8], ctx: &mut SHA256_CTX) -> Result<(), ()>[true])]
 fn sha256_final_unsafe_asm(out: &mut [u8], ctx: &mut SHA256_CTX) -> Result<(), ()> {
     // call to crypto_md32_final
