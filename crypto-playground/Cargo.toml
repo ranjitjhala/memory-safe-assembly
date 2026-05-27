@@ -25,6 +25,6 @@ cc = "1.0.90"
 
 [package.metadata.flux]
 enabled = true
-# include = ["src/bn.rs"]
-include = ["src/aes.rs", "src/sha1.rs", "src/sha256.rs", "src/utils.rs"]
+include = ["src/bn.rs"]
+# include = ["src/aes.rs", "src/sha1.rs", "src/sha256.rs", "src/utils.rs"]
 

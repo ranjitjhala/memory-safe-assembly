@@ -18,6 +18,7 @@ enum BnFlag {
 #[derive(Clone)]
 pub struct BigNumSt {
     d: [u64; BN_MAX_WORDS],
+    #[flux::field(usize{v: v < BN_MAX_WORDS})]
     width: usize,
     dmax: usize,
     neg: bool,
@@ -80,8 +81,8 @@ fn bn_wexpand(bn: &mut BIGNUM, words: usize) -> Result<(), String> {
 
     //let a = ms_calloc(words, core::mem::size_of::<BN_ULONG>());
     let a: &mut [u64; BN_MAX_WORDS] = &mut [0; BN_MAX_WORDS];
-    ms_memcpy(a, &bn.d, core::mem::size_of::<BN_ULONG>() * bn.width);
-    //ms_free(bn.d);
+    ms_memcpy(a, &bn.d, bn.width); // FLUX-TODO: the 8*seems wrong?: ms_memcpy(a, &bn.d, core::mem::size_of::<BN_ULONG>() * bn.width);
+                                   //ms_free(bn.d);
 
     bn.d = *a;
     bn.dmax = words;
@@ -97,6 +98,7 @@ fn bn_fits_in_words(bn: &BIGNUM, num: usize) -> bool {
     return mask == 0;
 }
 
+#[flux::trusted(reason = "r.width = max + 1 requires precondition on a or b?")]
 fn bn_uadd_consttime(r: &mut BIGNUM, a: &BIGNUM, b: &BIGNUM) -> Result<(), String> {
     let mut temp_a = a.clone();
     let mut temp_b = b.clone();
@@ -154,6 +156,7 @@ fn bn_usub_consttime(r: &mut BIGNUM, a: &BIGNUM, b: &BIGNUM) -> Result<(), Strin
 }
 
 // FIX TO INTEGERS
+#[flux::spec(fn (a: &[BN_ULONG]{sz: a_len <= sz}, a_len: usize, b: &[BN_ULONG]{sz: b_len <= sz}, b_len: usize) -> i64)]
 fn bn_cmp_words_consttime(a: &[BN_ULONG], a_len: usize, b: &[BN_ULONG], b_len: usize) -> i64 {
     //OPENSSL_STATIC_ASSERT(sizeof(BN_ULONG) <= sizeof(crypto_word_t),
     //                    crypto_word_t_is_too_small)
