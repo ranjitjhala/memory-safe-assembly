@@ -104,13 +104,6 @@ pub fn constant_time_lt(a: i64, b: i64) -> i64 {
     constant_time_msb(a ^ ((a ^ b) | ((a - b) ^ a)))
 }
 
-#[flux::spec(fn (cond: bool) ensures cond)]
-pub fn flux_runtime_assert(cond: bool) {
-    if !cond {
-        panic!("Flux runtime assertion failed");
-    }
-}
-
 #[flux::spec(fn (bool[true]))]
 pub fn flux_assert(_cond: bool) {}
 

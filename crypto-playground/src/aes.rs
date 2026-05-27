@@ -254,7 +254,7 @@ fn crypto_ctr128_encrypt(
     // assert!(key && ecount_buf && num);
     // assert!(len == 0 || (in && out));
     let mut n = *num as usize;
-    flux_runtime_assert(n < 16); // WAS: assert!(*num <= 16) which has an off-by-one?
+    assert!(n < 16); // WAS: assert!(*num <= 16) which has an off-by-one?
 
     let mut len = len0;
 
@@ -327,7 +327,7 @@ fn crypto_ctr128_encrypt_ctr32(
 
     let mut n = *num as usize;
     let mut len = len0;
-    flux_runtime_assert(n < 16); // WAS: assert!(*num <= 16) which has an off-by-one?
+    assert!(n < 16); // WAS: assert!(*num <= 16) which has an off-by-one?
 
     let mut i = 0;
     while (n > 0) && (len > 0) {
