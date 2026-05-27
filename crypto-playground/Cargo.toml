@@ -8,8 +8,12 @@ bums_macros = { path = "../bums_macros" }
 byteorder = "*"
 num-traits = "0.2.18"
 zeroize = "1.8.1"
-flux-rs = { git  = "https://github.com/flux-rs/flux.git" }
-flux-core = { git  = "https://github.com/flux-rs/flux.git" }
+# flux-rs = { git  = "https://github.com/flux-rs/flux.git" }
+# flux-core = { git  = "https://github.com/flux-rs/flux.git" }
+flux-rs = { path = "/Users/rjhala/research/flux/lib/flux-rs" }
+flux-core = { path = "/Users/rjhala/research/flux/lib/flux-core" }
+flux-alloc = { path = "/Users/rjhala/research/flux/lib/flux-alloc" }
+
 
 [dev-dependencies]
 aws-lc-rs = "*"

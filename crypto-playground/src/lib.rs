@@ -24,4 +24,5 @@ mod utils;
 #[no_mangle]
 pub static OPENSSL_armcap_P: usize = 0;
 
+extern crate flux_alloc;
 extern crate flux_core;

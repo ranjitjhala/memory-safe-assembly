@@ -104,6 +104,11 @@ fn vpaes_ctr32_encrypt_blocks(
 fn vpaes_encrypt(input: &[u8], output: &mut [u8], keys: &([u32; 60], u32));
 
 #[allow(non_snake_case)]
+#[flux::spec(fn (
+    key: &mut AesKey,
+    ivec: &mut [u8; 16],
+    block_buffer: &mut [u8; 16],
+    in_out: &mut [u8][@n]))]
 pub fn AES_ctr128_encrypt(
     key: &mut AesKey,
     ivec: &mut [u8; 16],
@@ -112,8 +117,8 @@ pub fn AES_ctr128_encrypt(
 ) {
     // from aws-lc-rs: let mut num = MaybeUninit::<u32>::new(0);
     let mut num: u32 = 0;
-    let input_clone: &[u8] = &in_out.to_vec().clone();
-
+    let cloned_vec = flux_to_vec(in_out);
+    let input_clone: &[u8] = flux_to_slice(&cloned_vec); // &in_out.to_vec(); // .clone() not needed?
     let res = aes_ctr128_encrypt(
         input_clone,
         in_out,
@@ -129,6 +134,14 @@ pub fn AES_ctr128_encrypt(
     }
 }
 
+#[flux::spec(fn (
+    input: &[u8][@n],
+    out: &mut [u8][@m],
+    len: usize{len <= n && len <= m},
+    key: &([u32; 60], u32),
+    ivec: &mut [u8; 16],
+    block_buffer: &mut [u8; 16],
+    num: &mut u32) -> Result<(), ()>)]
 fn aes_ctr128_encrypt(
     input: &[u8],
     out: &mut [u8],
@@ -247,11 +260,23 @@ fn crypto_ctr128_encrypt(
     *num = n as u32;
 }
 
-#[flux::trusted(reason = "claude/ 14 errors!")]
+// #[flux::trusted(reason = "claude/ 14 errors!")]
+
+const MAX_BLOCKS: usize = 1 << 28;
+
+#[flux::spec(fn (
+      input: &[u8][@n],
+      output: &mut [u8][@m],
+      len0: usize{len0 <= n && len0 <= m},
+      key: &([u32; 60], u32),
+      ivec: &mut [u8; 16],
+      block_buffer: &mut [u8; 16],
+      num: &mut u32,
+      func: AesFunc))]
 fn crypto_ctr128_encrypt_ctr32(
     mut input: &[u8],
     mut output: &mut [u8],
-    len: usize,
+    len0: usize,
     key: &([u32; 60], u32),
     ivec: &mut [u8; 16],
     block_buffer: &mut [u8; 16],
@@ -263,7 +288,8 @@ fn crypto_ctr128_encrypt_ctr32(
     // assert!(num < 16);
 
     let mut n = *num as usize;
-    let mut len = len;
+    let mut len = len0;
+    flux_runtime_assert(n < 16); // WAS: assert!(*num <= 16) which has an off-by-one?
 
     let mut i = 0;
     while (n > 0) && (len > 0) {
@@ -288,6 +314,9 @@ fn crypto_ctr128_encrypt_ctr32(
         // if (sizeof(size_t) > sizeof(unsigned int) && blocks > (1U << 28)) {
         //     blocks = (1U << 28);
         //   }
+        if blocks > MAX_BLOCKS {
+            blocks = MAX_BLOCKS;
+        }
 
         ctr32 = ctr32 + (blocks as u32);
         if ctr32 < (blocks as u32) {
