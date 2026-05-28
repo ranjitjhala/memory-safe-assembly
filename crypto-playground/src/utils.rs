@@ -104,9 +104,6 @@ pub fn constant_time_lt(a: i64, b: i64) -> i64 {
     constant_time_msb(a ^ ((a ^ b) | ((a - b) ^ a)))
 }
 
-#[flux_rs::spec(fn (bool[true]))]
-pub fn flux_assert(_cond: bool) {}
-
 pub fn flux_unsafe_unwrap<T, E>(res: Result<T, E>) -> T {
     match res {
         Ok(v) => v,

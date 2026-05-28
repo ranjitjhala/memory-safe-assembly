@@ -1,4 +1,4 @@
-#![flux::opts(scrape_quals = "true")]
+#![cfg_attr(flux, flux::opts(scrape_quals = "true"))]
 
 flux_rs::defs! {
     qualifier Le10(v: int) { v <= 10 }

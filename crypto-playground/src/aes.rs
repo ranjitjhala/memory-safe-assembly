@@ -287,7 +287,7 @@ fn crypto_ctr128_encrypt(
         len = len - 1;
         let len_snapshot = len;
         while len > 0 {
-            flux_rs::macros::invariant!(n: int;  n + len ==  len_snapshot); // needed, as else require qualifier n + len = (?n - 1)
+            flux_rs::assert(n + len == len_snapshot);
             output[n] = input[n] ^ block_buffer[n];
             n = n + 1;
             len = len - 1;
