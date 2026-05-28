@@ -4,9 +4,13 @@ fn gcm_init_neon(htable: &mut [u128; 16], h: &[u64; 2]);
 #[bums_macros::check_mem_safe("ghash-neon-armv8.S", context.as_mut_ptr(), h.as_ptr())]
 fn gcm_gmult_neon(context: &mut [u8; 16], h: &[u128; 16]);
 
+#[flux_rs::spec(fn (context: &mut [u8; 16], h: &[u128; 16], buf: &[u8]{len: 16 <= len && len%16==0}))] // NO-CALLER?
+fn gcm_ghash_neon(context: &mut [u8; 16], h: &[u128; 16], buf: &[u8]) {
+    gcm_ghash_neon_inner(context, h, buf);
+}
 // length in bits, not bytes
 #[bums_macros::check_mem_safe("ghash-neon-armv8.S", context.as_mut_ptr(), h.as_ptr(), buf.as_ptr(), buf.len(), [buf.len() >= 16, buf.len()%16==0])]
-fn gcm_ghash_neon(context: &mut [u8; 16], h: &[u128; 16], buf: &[u8]);
+fn gcm_ghash_neon_inner(context: &mut [u8; 16], h: &[u128; 16], buf: &[u8]);
 
 #[cfg(test)]
 mod tests {

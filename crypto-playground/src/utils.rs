@@ -1,7 +1,7 @@
 use byteorder::ByteOrder;
 use num_traits::PrimInt;
 
-#[flux::spec(fn (dst: &mut [T]{v: n <= v}, src: &[T]{v: n <= v}, n: usize))]
+#[flux_rs::spec(fn (dst: &mut [T]{v: n <= v}, src: &[T]{v: n <= v}, n: usize))]
 pub fn ms_memcpy<T: std::marker::Copy>(dst: &mut [T], src: &[T], n: usize) {
     if n == 0 {
         return;
@@ -9,7 +9,7 @@ pub fn ms_memcpy<T: std::marker::Copy>(dst: &mut [T], src: &[T], n: usize) {
     dst[0..n].copy_from_slice(&src[0..n]);
 }
 
-#[flux::spec(fn (dst: &mut [T]{v: n <= v}, c: T, n: usize))]
+#[flux_rs::spec(fn (dst: &mut [T]{v: n <= v}, c: T, n: usize))]
 pub fn ms_memset<T: std::clone::Clone>(dst: &mut [T], c: T, n: usize) {
     if n == 0 {
         return;
@@ -46,7 +46,7 @@ pub fn ms_addc_u64(x: u64, y: u64, carry_in: bool) -> (u64, bool) {
     }
 }
 
-#[flux::trusted(reason = "ignore underflow")]
+#[flux_rs::trusted(reason = "ignore underflow")]
 #[inline]
 pub fn ms_subc_u64(x: u64, y: u64, carry_in: bool) -> (u64, bool) {
     let ret = x - y - (carry_in as u64);
@@ -81,7 +81,7 @@ where
     mask & a | (!mask & b)
 }
 
-#[flux::trusted(
+#[flux_rs::trusted(
     reason = "crates/flux-middle/src/rty/mod.rs:813:32: caller should guarantee existence of associated refinement"
 )]
 #[inline]
@@ -104,7 +104,7 @@ pub fn constant_time_lt(a: i64, b: i64) -> i64 {
     constant_time_msb(a ^ ((a ^ b) | ((a - b) ^ a)))
 }
 
-#[flux::spec(fn (bool[true]))]
+#[flux_rs::spec(fn (bool[true]))]
 pub fn flux_assert(_cond: bool) {}
 
 pub fn flux_unsafe_unwrap<T, E>(res: Result<T, E>) -> T {

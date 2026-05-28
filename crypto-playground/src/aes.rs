@@ -6,7 +6,7 @@ use zeroize::Zeroize;
 #[repr(C)]
 pub struct AesKey {
     rd_key: [u32; 4 * (14 + 1)], //14 is the MAX number of AES rounds
-    // FLUX-TODO:PRECONDITIONS: #[flux::field(u32{v: 10 <= v && v <= 16 && v%2==0})]
+    // FLUX-TODO:PRECONDITIONS: #[field(u32{v: 10 <= v && v <= 16 && v%2==0})]
     rounds: u32,
 }
 
@@ -18,7 +18,7 @@ impl AesKey {
         };
     }
 
-    #[flux::spec(fn new_from_bytes(bytes: &[u8][244]) -> AesKey)]
+    #[flux_rs::spec(fn new_from_bytes(bytes: &[u8][244]) -> AesKey)]
     pub fn new_from_bytes(bytes: &[u8]) -> Self {
         // FLUX let mut i = 0;
         let mut rd_key: [u32; 60] = [0; 60];
@@ -84,7 +84,7 @@ enum AesFunc {
 //     htable: &[u128; 16],
 // );
 
-#[flux::spec(fn (
+#[flux_rs::spec(fn (
     input: &[u8][@n],
     output: &mut [u8][n],
     keys: &([u32; 60], u32 /* FLUX-TODO:PRECONDITIONS? {v: 10 <= v && v <= 16 && v%2==0} */),
@@ -107,7 +107,7 @@ fn aes_hw_ctr32_encrypt_blocks_inner(
     ivec: &mut [u8; 16],
 );
 
-#[flux::spec(fn (
+#[flux_rs::spec(fn (
     input: &[u8][@n],
     output: &mut [u8][n],
     keys: &([u32; 60], u32 /* FLUX-TODO:PRECONDITIONS? {v: 10 <= v && v <= 16 && v%2==0} */),
@@ -130,7 +130,7 @@ fn vpaes_ctr32_encrypt_blocks_inner(
     ivec: &mut [u8; 16],
 );
 
-#[flux::spec(fn (
+#[flux_rs::spec(fn (
     input: &[u8][@n],
     output: &mut [u8][n],
     keys: &([u32; 60], u32 /* FLUX-TODO:PRECONDITIONS? {v: 10 <= v && v <= 16 && v%2==0} */),
@@ -143,7 +143,7 @@ fn vpaes_encrypt(input: &[u8], output: &mut [u8], keys: &([u32; 60], u32)) {
 fn vpaes_encrypt_inner(input: &[u8], output: &mut [u8], keys: &([u32; 60], u32));
 
 #[allow(non_snake_case)]
-#[flux::spec(fn (
+#[flux_rs::spec(fn (
     key: &mut AesKey,
     ivec: &mut [u8; 16],
     block_buffer: &mut [u8; 16],
@@ -172,7 +172,7 @@ pub fn AES_ctr128_encrypt(
     }
 }
 
-#[flux::spec(fn (
+#[flux_rs::spec(fn (
     input: &[u8][@n],
     out: &mut [u8][@m],
     len: usize{len <= n && len <= m},
@@ -233,8 +233,8 @@ fn aes_ctr128_encrypt(
     Ok(())
 }
 
-// #[flux::trusted(reason = "claude/13 --> 6 errors!")]
-#[flux::spec(fn (
+// #[flux_rs::trusted(reason = "claude/13 --> 6 errors!")]
+#[flux_rs::spec(fn (
     input: &[u8][@n],
     output: &mut [u8][@m],
     len0: usize{len0 <= n && len0 <= m},
@@ -298,11 +298,11 @@ fn crypto_ctr128_encrypt(
     *num = n as u32;
 }
 
-// #[flux::trusted(reason = "claude/ 14 errors!")]
+// #[flux_rs::trusted(reason = "claude/ 14 errors!")]
 
 const MAX_BLOCKS: usize = 1 << 28;
 
-#[flux::spec(fn (
+#[flux_rs::spec(fn (
       input: &[u8][@n],
       output: &mut [u8][@m],
       len0: usize{len0 <= n && len0 <= m},
@@ -415,7 +415,7 @@ fn crypto_ctr128_encrypt_ctr32(
     *num = n as u32;
 }
 
-#[flux::spec(fn (counter: &mut [u8]{n: 10 < n}))]
+#[flux_rs::spec(fn (counter: &mut [u8]{n: 10 < n}))]
 fn ctr96_inc(counter: &mut [u8]) {
     let mut c: u32 = 1;
 
@@ -429,7 +429,7 @@ fn ctr96_inc(counter: &mut [u8]) {
     }
 }
 
-#[flux::spec(fn (counter: &mut [u8]{n: 10 < n}))]
+#[flux_rs::spec(fn (counter: &mut [u8]{n: 10 < n}))]
 fn ctr128_inc(counter: &mut [u8]) {
     let mut c: u32 = 1;
 

@@ -6,12 +6,13 @@ extern crate flux_core;
 const SHA1_CBLOCK: usize = 64;
 
 #[derive(Debug)]
+#[flux_rs::refined_by()]
 struct Sha1Context {
     h: [u32; 5],
     nl: u32,
     nh: u32,
     data: [u8; SHA1_CBLOCK],
-    #[flux::field(u32{v: v < SHA1_CBLOCK})]
+    #[field(u32{v: v < SHA1_CBLOCK})]
     num: u32,
 }
 
@@ -32,7 +33,7 @@ pub fn sha1_digest(msg: &[u8], output: &mut [u8]) {
     sha1(msg, msg.len(), output);
 }
 
-#[flux::spec(fn sha1(data: &[u8][len], len: usize, out: &mut [u8]))]
+#[flux_rs::spec(fn sha1(data: &[u8][len], len: usize, out: &mut [u8]))]
 fn sha1(data: &[u8], len: usize, out: &mut [u8]) {
     let mut ctx = Sha1Context::init();
 
@@ -40,7 +41,7 @@ fn sha1(data: &[u8], len: usize, out: &mut [u8]) {
     sha1_final(out, &mut ctx).expect("Final");
 }
 
-#[flux::spec(fn (ctx: &mut Sha1Context, msg: &[u8][len], len: usize) -> Result<(), ()>[true] ensures ctx: Sha1Context)]
+#[flux_rs::spec(fn (ctx: &mut Sha1Context, msg: &[u8][len], len: usize) -> Result<(), ()>[true] ensures ctx: Sha1Context)]
 fn sha1_update(ctx: &mut Sha1Context, msg: &[u8], len: usize) -> Result<(), ()> {
     //call to crypt_md32_update
     let mut len = len;
@@ -90,7 +91,7 @@ fn sha1_update(ctx: &mut Sha1Context, msg: &[u8], len: usize) -> Result<(), ()> 
     Ok(())
 }
 
-#[flux::spec(fn (out: &mut [u8], ctx: &mut Sha1Context) -> Result<(), ()>[true])]
+#[flux_rs::spec(fn (out: &mut [u8], ctx: &mut Sha1Context) -> Result<(), ()>[true])]
 fn sha1_final(out: &mut [u8], ctx: &mut Sha1Context) -> Result<(), ()> {
     // call to crypto_md32_final
     let mut n = ctx.num as usize;
@@ -116,7 +117,7 @@ fn sha1_final(out: &mut [u8], ctx: &mut Sha1Context) -> Result<(), ()> {
     Ok(())
 }
 
-#[flux::spec(fn (context: &mut [u32; 5], input: &[u8]{len: 64 <= len}))]
+#[flux_rs::spec(fn (context: &mut [u32; 5], input: &[u8]{len: 64 <= len}))]
 fn sha1_block_data_order(context: &mut [u32; 5], input: &[u8]) {
     sha1_block_data_order_inner(context, input);
 }

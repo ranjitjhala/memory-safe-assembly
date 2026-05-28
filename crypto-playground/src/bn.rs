@@ -16,9 +16,10 @@ enum BnFlag {
 }
 
 #[derive(Clone)]
+#[flux_rs::refined_by()]
 pub struct BigNumSt {
     d: [u64; BN_MAX_WORDS],
-    #[flux::field(usize{v: v < BN_MAX_WORDS})]
+    #[field(usize{v: v < BN_MAX_WORDS})]
     width: usize,
     dmax: usize,
     neg: bool,
@@ -98,7 +99,7 @@ fn bn_fits_in_words(bn: &BIGNUM, num: usize) -> bool {
     return mask == 0;
 }
 
-#[flux::trusted(reason = "r.width = max + 1 requires precondition on a or b?")]
+#[flux_rs::trusted(reason = "r.width = max + 1 requires precondition on a or b?")]
 fn bn_uadd_consttime(r: &mut BIGNUM, a: &BIGNUM, b: &BIGNUM) -> Result<(), String> {
     let mut temp_a = a.clone();
     let mut temp_b = b.clone();
@@ -156,7 +157,7 @@ fn bn_usub_consttime(r: &mut BIGNUM, a: &BIGNUM, b: &BIGNUM) -> Result<(), Strin
 }
 
 // FIX TO INTEGERS
-#[flux::spec(fn (a: &[BN_ULONG]{sz: a_len <= sz}, a_len: usize, b: &[BN_ULONG]{sz: b_len <= sz}, b_len: usize) -> i64)]
+#[flux_rs::spec(fn (a: &[BN_ULONG]{sz: a_len <= sz}, a_len: usize, b: &[BN_ULONG]{sz: b_len <= sz}, b_len: usize) -> i64)]
 fn bn_cmp_words_consttime(a: &[BN_ULONG], a_len: usize, b: &[BN_ULONG], b_len: usize) -> i64 {
     //OPENSSL_STATIC_ASSERT(sizeof(BN_ULONG) <= sizeof(crypto_word_t),
     //                    crypto_word_t_is_too_small)
@@ -307,11 +308,21 @@ pub fn bn_sub(r: &mut BIGNUM, a: &BIGNUM, b: &BIGNUM) -> Result<(), String> {
     return Ok(());
 }
 
-#[bums_macros::check_mem_safe("bn-armv8.S", output.as_mut_ptr(), a.as_ptr(), b.as_ptr(), output.len(), [output.len() == a.len(), output.len() == b.len()])]
-fn bn_add_words(output: &mut [u64], a: &[u64], b: &[u64]) -> bool;
+#[flux_rs::spec(fn (output: &mut [u64][@n], a: &[u64][n], b: &[u64][n]) -> bool)] // NO-CALLER?
+fn bn_add_words(output: &mut [u64], a: &[u64], b: &[u64]) -> bool {
+    bn_add_words_inner(output, a, b)
+}
 
 #[bums_macros::check_mem_safe("bn-armv8.S", output.as_mut_ptr(), a.as_ptr(), b.as_ptr(), output.len(), [output.len() == a.len(), output.len() == b.len()])]
-fn bn_sub_words(output: &mut [u64], a: &[u64], b: &[u64]) -> bool;
+fn bn_add_words_inner(output: &mut [u64], a: &[u64], b: &[u64]) -> bool;
+
+#[flux_rs::spec(fn (output: &mut [u64][@n], a: &[u64][n], b: &[u64][n]) -> bool)] // NO-CALLER?
+fn bn_sub_words(output: &mut [u64], a: &[u64], b: &[u64]) -> bool {
+    bn_sub_words_inner(output, a, b)
+}
+
+#[bums_macros::check_mem_safe("bn-armv8.S", output.as_mut_ptr(), a.as_ptr(), b.as_ptr(), output.len(), [output.len() == a.len(), output.len() == b.len()])]
+fn bn_sub_words_inner(output: &mut [u64], a: &[u64], b: &[u64]) -> bool;
 
 // #[bums_macros::check_mem_safe("armv8-mont.S", rp.as_mut_ptr(), ap.as_ptr(),  bp.as_ptr(), np.as_ptr(), n0.as_ptr(), rp.len(), [rp.len() == ap.len(), rp.len() == bp.len(), rp.len() == np.len(), rp.len()==n0.len(), rp.len() >= 512])]
 // fn bn_mul_mont(rp: &mut [u64], ap: &[u64], bp: &[u64], np: &[u64], n0: &[u64]) -> bool;

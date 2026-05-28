@@ -13,11 +13,12 @@ zeroize = "1.8.1"
 flux-rs = { path = "/Users/rjhala/research/flux/lib/flux-rs" }
 flux-core = { path = "/Users/rjhala/research/flux/lib/flux-core" }
 flux-alloc = { path = "/Users/rjhala/research/flux/lib/flux-alloc" }
-
+aws-lc-rs = "1"
+aws-lc-sys = "0.41"
 
 [dev-dependencies]
-aws-lc-rs = "*"
-aws-lc-sys = "0.14.1"
+aws-lc-rs = "1"
+aws-lc-sys = "0.41"
 
 [build-dependencies]
 bums_macros = { path = "../bums_macros" }
@@ -25,5 +26,6 @@ cc = "1.0.90"
 
 [package.metadata.flux]
 enabled = true
+# include = ["src/bn.rs"]
 # include = ["src/bn.rs", "src/aes.rs", "src/sha1.rs", "src/sha256.rs", "src/utils.rs"]
 
